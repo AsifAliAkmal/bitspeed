@@ -6,7 +6,7 @@ WORKDIR /app
 # Set environment variables
 ENV DB_NAME=bitspeed
 ENV DB_USER=root
-ENV DB_PASSWORD=asifali_11
+ENV DB_PASSWORD=asdfghjk
 ENV DB_HOST=host.docker.internal
 ENV DB_DIALECT=mysql
 
