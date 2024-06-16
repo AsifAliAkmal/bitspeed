@@ -5,12 +5,20 @@ const Contact = db.contacts;
 
 //Create and save new contact
 exports.create = async (req,res) => {
-    return await createNewContact(req,res);
+    try{
+        const contact  =  await createNewContact(req,res);
+        return res.status(201).send(contact);
+    }catch(error){
+        return res.status(500).send({
+                message: "An error occur while creating new contact."
+            });
+    }
+    
    
 }
 
- const createNewContact = async (req,res) => {
-    try {
+const createNewContact = async (req,res) => {
+    
         const { email, phoneNumber } = req.body;
 
         // Validate input
@@ -28,14 +36,7 @@ exports.create = async (req,res) => {
         });
 
         // Send a success response
-        return res.status(201).send(newContact);
-    } catch (error) {
-        // Handle errors
-        console.error(error);
-        return res.status(500).send({
-            message: "An error occurred while creating the contact."
-        });
-    }
+        return newContact;
 }
 
 
@@ -102,21 +103,25 @@ exports.findAll = async (req, res) => {
         });
 
         if(contacts.length  === 0){
-            return createNewContact(req,res)
+            await createNewContact(req,res)
         }
 
-        await updatePrecedence(contacts);
+        if(contacts.length !== 0){
+            await updatePrecedence(contacts);
+        }
 
         const updatedContacts = await Contact.findAll({
             where: condition,
             order: [['createdAt', 'ASC']]
         });
 
+        console.log(updatedContacts);
+
         // Construct the desired response format directly from updatedContacts
         const primaryContact = updatedContacts.find(contact => contact.linkPrecedence === 'primary');
         const primaryContactId = primaryContact ? primaryContact.id : null;
-        const emails = updatedContacts.map(contact => contact.email);
-        const phoneNumbers = updatedContacts.map(contact => contact.phoneNumber);
+        const emails = updatedContacts.map(contact => contact.email) .filter(email => email !== null);;
+        const phoneNumbers = updatedContacts.map(contact => contact.phoneNumber) .filter(phoneNumber => phoneNumber !== null);;
         const secondaryContactIds = updatedContacts
             .filter(contact => contact.linkPrecedence === 'secondary')
             .map(contact => contact.id);
@@ -133,7 +138,7 @@ exports.findAll = async (req, res) => {
 
 
         // Send a success response
-        return res.status(201).send(response);
+        return res.status(200).send(response);
     } catch (error) {
         // Handle errors
         console.error(error);
